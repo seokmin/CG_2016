@@ -30,6 +30,7 @@ GLfloat window_height = 100;
 
 #define NUM_OF_BOXES 8
 Box boxes[NUM_OF_BOXES];
+Box yebiBoxes[NUM_OF_BOXES];
 CollisionBox collisionBoxes[NUM_OF_BOXES];
 void RenderScene(void)
 {
@@ -56,12 +57,12 @@ void SetupRC(void)
 
 	window_width = 100.f;
 	window_height = 100.f;
-	GLsizei rectSize = 30.f;
+	GLsizei rectSize = 40;
 	ZeroMemory(boxes, NUM_OF_BOXES);
-	boxes[0] = { -window_width,window_height - rectSize,rectSize, 1.f,0.f,0.f,2.f,2.f };
-	boxes[1] = { window_width - rectSize,window_height - rectSize,rectSize,0.f,1.f,0.f,2.f,2.f };
-	boxes[2] = { -window_width,-window_height,rectSize,0.f,0.f,1.f,2.f,2.f };
-	boxes[3] = { window_width - rectSize,-window_height,rectSize,1.f,1.f,1.f,2.f,2.f };
+	boxes[0] = { -window_width,window_height - rectSize,rectSize, 1.f,0.f,0.f,3.f,3.f};
+	boxes[1] = { window_width - rectSize,window_height - rectSize,rectSize,0.f,1.f,0.f,3.f,3.f };
+	boxes[2] = { -window_width,-window_height,rectSize,0.f,0.f,1.f,3.f,3.f };
+	boxes[3] = { window_width - rectSize,-window_height,rectSize,1.f,1.f,1.f,3.f,3.f };
 
 }
 
@@ -96,6 +97,7 @@ void TimerFunc(int value)
 {
 	for (auto i = 0; i < NUM_OF_BOXES; ++i)
 	{
+		yebiBoxes[i] = boxes[i];
 		auto half = boxes[i].rectSize / 2.f;
 		auto& currentCb = collisionBoxes[i];
 		currentCb.centerX = boxes[i].posX + half;
@@ -106,6 +108,9 @@ void TimerFunc(int value)
 	for (auto i = 0; i<NUM_OF_BOXES; ++i)
 	{
 		auto& currentBox = boxes[i];
+		if(currentBox.xstep == 0 || currentBox.ystep == 0)
+			continue;
+		auto& yebiBox = yebiBoxes[i];
 		auto w_h = window_height;
 		for (auto j = 0; j<NUM_OF_BOXES; ++j)
 		{
@@ -126,29 +131,50 @@ void TimerFunc(int value)
 			auto fightingW = 0;
 			auto fightingH = 0;
 
-			auto isHit = true;
-
+			//충돌 아닐시 continue
 			if (currentLB > targetRB || currentRB < targetLB || currentTB < targetBB || currentBB > targetTB)
-				isHit = false;
-			if(isHit == false)
 				continue;
 			fightingW = min(currentRB, targetRB) - max(currentLB, targetLB);
 			fightingH = min(currentTB, targetTB) - max(currentBB, targetBB);
 			if (fightingH > fightingW)
-				currentBox.xstep *= -1;
+			{
+				yebiBox.xstep *= -1;
+				//튕기기
+				if (currentRB < targetRB)//왼쪽에서 들어왔으면
+					yebiBox.posX = targetLB - currentBox.rectSize;
+				else
+					yebiBox.posX = targetRB;
+			}
 			else if (fightingW > fightingH)
-				currentBox.ystep *= -1;
+			{
+				if (currentTB < targetTB)
+					yebiBox.posY = targetBB - currentBox.rectSize;
+				else
+					yebiBox.posY = targetTB;
+				yebiBox.ystep *= -1;
+			}
 			else
 			{
-				currentBox.xstep *= -1;
-				currentBox.ystep *= -1;
+				yebiBox.xstep *= -1;
+				yebiBox.ystep *= -1;
+				if (currentRB < targetRB)//왼쪽에서 들어왔으면
+					yebiBox.posX = targetRB - currentBox.rectSize;
+				else
+					yebiBox.posX = targetRB;
+				if (currentTB < targetTB)
+					yebiBox.posY = targetTB - currentBox.rectSize;
+				else
+					yebiBox.posY = targetTB;
 			}
+
+
 			break;
 		}
-		currentBox.posX += currentBox.xstep;
-		currentBox.posY += currentBox.ystep;
+		yebiBox.posX += yebiBox.xstep;
+		yebiBox.posY += yebiBox.ystep;
 	}
-
+	for (auto i = 0; i < NUM_OF_BOXES; ++i)
+		boxes[i] = yebiBoxes[i];
 	glutPostRedisplay();
 	glutTimerFunc(33, TimerFunc, 1);
 }
