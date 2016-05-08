@@ -15,13 +15,22 @@ struct Box
 	GLfloat ystep;
 };
 
+struct CollisionBox
+{
+	GLfloat centerX;
+	GLfloat centerY;
+	GLfloat width;
+	GLfloat height;
+};
 
-GLfloat window_width;
-GLfloat window_height;
+GLfloat window_width = 100 * 800 / 600;
+GLfloat window_height = 100;
 
-#define NUM_OF_BOXES 4
+
+
+#define NUM_OF_BOXES 8
 Box boxes[NUM_OF_BOXES];
-
+CollisionBox collisionBoxes[NUM_OF_BOXES];
 void RenderScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -47,7 +56,7 @@ void SetupRC(void)
 
 	window_width = 100.f;
 	window_height = 100.f;
-	GLsizei rectSize = 50.f;
+	GLsizei rectSize = 30.f;
 	ZeroMemory(boxes, NUM_OF_BOXES);
 	boxes[0] = { -window_width,window_height - rectSize,rectSize, 1.f,0.f,0.f,2.f,2.f };
 	boxes[1] = { window_width - rectSize,window_height - rectSize,rectSize,0.f,1.f,0.f,2.f,2.f };
@@ -74,30 +83,70 @@ void ChangeSize(GLsizei w, GLsizei h)
 		window_height = 100.f;
 	}
 	glOrtho(-window_width, window_width, -window_height, window_height, 1.f, -1.f);
-
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	boxes[4] = { window_width,-window_height,2 * (int)window_height,1.f,1.f,1.f,0.f,0.f };
+	boxes[5] = { -window_width - 2.f*window_height,-window_height,2 * (int)window_height,1.f,1.f,1.f,0.f,0.f };
+	boxes[6] = { -window_width,window_height,2 * (int)window_width,1.f,1.f,1.f,0.f,0.f };
+	boxes[7] = { -window_width,-window_height - 2.f*window_width,2 * (int)window_width,1.f,1.f,1.f,0.f,0.f };
 }
 
 void TimerFunc(int value)
 {
-	for (auto& i : boxes)
+	for (auto i = 0; i < NUM_OF_BOXES; ++i)
 	{
-		if (i.posX >= window_width - i.rectSize || i.posX <= -window_width)
-			i.xstep = -i.xstep;
-		if (i.posY >= window_height - i.rectSize || i.posY <= -window_height)
-			i.ystep = -i.ystep;
+		auto half = boxes[i].rectSize / 2.f;
+		auto& currentCb = collisionBoxes[i];
+		currentCb.centerX = boxes[i].posX + half;
+		currentCb.centerY = boxes[i].posY + half;
+		currentCb.width = half;
+		currentCb.height = half;
+	}
+	for (auto i = 0; i<NUM_OF_BOXES; ++i)
+	{
+		auto& currentBox = boxes[i];
+		auto w_h = window_height;
+		for (auto j = 0; j<NUM_OF_BOXES; ++j)
+		{
+			if(i==j)
+				continue;
+			auto& collisionBox = collisionBoxes[j];
 
-		if (i.posX >= window_width - i.rectSize)
-			i.posX = window_width - i.rectSize - 1;
-		if (i.posY >= window_height - i.rectSize)
-			i.posY = window_height - i.rectSize - 1;		if (i.posX <= -window_width)
-			i.posX = -window_width+1;
-		if (i.posY <= -window_height)
-			i.posY = -window_height+ 1;
-		i.posX += i.xstep;
-		i.posY += i.ystep;
+			auto currentRB = currentBox.posX + currentBox.rectSize;
+			auto currentLB = currentBox.posX;
+			auto currentTB = currentBox.posY + currentBox.rectSize;
+			auto currentBB = currentBox.posY;
+			auto targetRB = collisionBox.centerX + collisionBox.width;
+			auto targetLB = collisionBox.centerX - collisionBox.width;
+			auto targetTB = collisionBox.centerY + collisionBox.height;
+			auto targetBB = collisionBox.centerY - collisionBox.height;
 
+			//겹치는 사각형
+			auto fightingW = 0;
+			auto fightingH = 0;
+
+			auto isHit = true;
+
+			if (currentLB > targetRB || currentRB < targetLB || currentTB < targetBB || currentBB > targetTB)
+				isHit = false;
+			if(isHit == false)
+				continue;
+			fightingW = min(currentRB, targetRB) - max(currentLB, targetLB);
+			fightingH = min(currentTB, targetTB) - max(currentBB, targetBB);
+			if (fightingH > fightingW)
+				currentBox.xstep *= -1;
+			else if (fightingW > fightingH)
+				currentBox.ystep *= -1;
+			else
+			{
+				currentBox.xstep *= -1;
+				currentBox.ystep *= -1;
+			}
+			break;
+		}
+		currentBox.posX += currentBox.xstep;
+		currentBox.posY += currentBox.ystep;
 	}
 
 	glutPostRedisplay();
@@ -112,7 +161,7 @@ void main(void)
 	glutCreateWindow("CG_2016");
 	glutDisplayFunc(RenderScene);
 	glutReshapeFunc(ChangeSize);
-	glutTimerFunc(2000, TimerFunc, 1);
+	glutTimerFunc(500, TimerFunc, 1);
 	SetupRC();
 	glutMainLoop();
 }
