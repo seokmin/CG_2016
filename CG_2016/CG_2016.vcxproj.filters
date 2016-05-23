@@ -18,5 +18,16 @@
     <ClCompile Include="opengl_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Drawjet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="glaux.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gltools.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

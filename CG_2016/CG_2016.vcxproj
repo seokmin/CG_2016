@@ -146,7 +146,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Drawjet.cpp" />
     <ClCompile Include="opengl_test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="glaux.h" />
+    <ClInclude Include="gltools.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

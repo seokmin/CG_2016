@@ -1,3 +1,4 @@
+/*
 #include <windows.h>
 #include <gl\glut.h>
 #include <math.h>
@@ -6,11 +7,18 @@ const GLfloat GL_PI = 3.1415;
 
 void SetupRC(void)
 {
-	glClearColor(0.f, 0.f, 0.f, 1.0f);
-	glColor3f(0.f, 1.f, 0.f);
+	// Light Values
+	GLfloat ambientLight[] = { 0.5f,0.5f,0.5f,0.5f };
+
 	glEnable(GL_DEPTH_TEST);
-	glFrontFace(GL_CCW);
 	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
+
+	// Áß¿ä
+	glEnable(GL_LIGHTING);
+
+	
+
 }
 
 void TimerFunc(int value)
@@ -92,4 +100,4 @@ void main(void)
 	glutReshapeFunc(ChangeSize);
 	SetupRC();
 	glutMainLoop();
-}
+}*/
