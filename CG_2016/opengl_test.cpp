@@ -21,20 +21,22 @@ void TimerFunc(int value)
 
 void ChangeSize(GLsizei w, GLsizei h)
 {
-	GLfloat nRange = 100.0f;
+	GLfloat fAspect;
 
 	glViewport(0, 0, w, h);
 	
+	fAspect = (GLfloat)w / (GLfloat)h;
+
 	glMatrixMode(GL_PROJECTION);
 	
 	glLoadIdentity();
 	
-	if (w <= h)
-		glOrtho(-nRange, nRange, -nRange*h / w, nRange*h / w, -nRange*2.f, nRange*2.f);
-	else
-		glOrtho(-nRange*w / h, nRange*w / h, -nRange, nRange, -nRange*2.f, nRange*2.f);
+	gluPerspective(60.f, fAspect, 1.f, 500.f);
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	glTranslatef(0.f, 0.f, -200.f);
 
 }
 
