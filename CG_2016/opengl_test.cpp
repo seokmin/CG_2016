@@ -1,16 +1,51 @@
 #include <windows.h>
 #include <gl\glut.h>
 #include <math.h>
+#include "lodepng.h"
+
 
 const GLfloat GL_PI = 3.1415;
+static GLfloat xRot = 0.f;
+static GLfloat yRot = 0.f;
+static GLfloat zDistance = 0.f;
+
+GLfloat amb[] = {0.3f, 0.3f, 0.3f, 1.f};
+GLfloat dif[] = {0.8f, 0.8f, 0.8f, 1.f};
+GLfloat lightPos[] = { -50.f, 50.f, 100.f, 1.f };
+
+GLuint texID;
 
 void SetupRC(void)
 {
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
-	glColor3f(0.f, 1.f, 0.f);
 	glEnable(GL_DEPTH_TEST);
 	glFrontFace(GL_CCW);
 	glEnable(GL_CULL_FACE);
+}
+
+void LoadTexture()
+{
+	std::vector<unsigned char> image;
+	unsigned width, height, error;
+
+	error = lodepng::decode(image, width, height, "texture.png");
+
+	if (error)
+		printf("error %u: %s\n", error, lodepng_error_text(error));
+	printf("\nimage size is %i", image.size());
+
+	glGenTextures(1, &texID);
+	glBindTexture(GL_TEXTURE_2D, texID);
+
+	glEnable(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,image.data());
+
+
 }
 
 void TimerFunc(int value)
@@ -42,40 +77,24 @@ void ChangeSize(GLsizei w, GLsizei h)
 
 void RenderScene(void)
 {
-	static GLfloat fElect1 = 0.f;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.f, 0.f, -100.f);
-	glColor3ub(255, 0, 0);
-	glutSolidSphere(10.f, 15, 15);
-
 	glPushMatrix();
-	glRotatef(fElect1, 0.f, 1.f, 0.f);
-	glTranslatef(90.f, 0.f, 0.f);
-	glColor3ub(255, 255, 0);
-	glutSolidSphere(6.f, 15, 15);
+	{
+		glRotatef(xRot, 1.f, 0.f, 0.f);
+		glRotatef(yRot, 1.f, 0.f, 0.f);
+		glTranslatef(0.f, 0.f, zDistance);
+
+		glEnable(GL_LIGHTING);
+		glLightfv(GL_LIGHT0, GL_AMBIENT,amb);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE,dif);
+		glLightfv(GL_LIGHT0, GL_POSITION,lightPos);
+		glEnable(GL_LIGHT0);
+
+		glColor3f(1.f,1.f,1.f);
+		glutSolidTeapot(10.f);
+	}
 	glPopMatrix();
-
-	glPushMatrix();
-	glRotatef(45.f, 0.f, 1.f, 1.f);
-	glRotatef(fElect1, 0.f, 1.f, 0.f);
-	glTranslatef(-70.f, 0.f, 0.f);
-	glutSolidSphere(6.f, 15, 15);
-	glPopMatrix();
-
-
-	glPushMatrix();
-	glRotatef(90.f, 0.f, 0.f, 1.f);
-	glRotatef(fElect1, 0.f, 1.f, 0.f);
-	glTranslatef(0.f, 0.f, 60.f);
-	glutSolidSphere(6.f, 15, 15);
-	glPopMatrix();
-
-	fElect1 += 2.f;
-	if (fElect1 > 360.f)
-		fElect1 = 0.f;
 
 	glutSwapBuffers();
 }
@@ -91,5 +110,7 @@ void main(void)
 	glutDisplayFunc(RenderScene);
 	glutReshapeFunc(ChangeSize);
 	SetupRC();
+	LoadTexture()
+
 	glutMainLoop();
 }
