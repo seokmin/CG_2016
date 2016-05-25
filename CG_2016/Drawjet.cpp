@@ -10,11 +10,10 @@ static GLfloat zDistance = 0.0f;		///ADD
 void SetupRC()
 {
 
-
-
-
 	GLfloat amb[] = { 0.3f,0.3f,0.3f };
 	GLfloat diff[] = { 0.7f,0.7f,0.7f };
+	GLfloat specular[] = { 1.f,1.f,1.f,1.f };
+	GLfloat specref[] = { 1.f,1.f,1.f,1.f };
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);  // 내부 폴리곤 연산 off (backface culling)
