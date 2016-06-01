@@ -22,7 +22,7 @@ GLuint texIDs[3];
 
 // ºû
 GLfloat ambientLight[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-GLfloat diffuseLight[] = { 0.9f, 0.9f, 0.9f, 1.0f };
+GLfloat diffuseLight[] = { 1.f, 1.f, 1.f, 1.0f };
 GLfloat lightPos[] = { 0, 0, -100, 1.0f };
 
 GLUquadricObj *sphere = nullptr;
