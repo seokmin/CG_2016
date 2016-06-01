@@ -4,29 +4,35 @@
 
 GLfloat xRot = 0.f;
 GLfloat yRot = 0.f;
-const GLfloat GL_PI = 3.1415;
 
-bool iCull = FALSE;
-bool iOutline = FALSE;
-bool iDepth = FALSE;
-
-void ProcessMenu(int value) //add
+struct MyColor
 {
-	switch (value)
-	{
-	case 1:
-		iDepth = !iDepth;
-		break;
-	case 2:
-		iCull = !iCull;
-		break;
-	case 3:
-		iOutline = !iOutline;
-		break;
-	default:
-		break;
-	}
-	glutPostRedisplay();
+	float r;
+	float g;
+	float b;
+};
+
+struct MyPoint
+{
+	float x;
+	float y;
+	float z;
+	MyColor rgb;
+};
+
+void drawVertex(MyPoint point)
+{
+	glColor3f(point.rgb.r, point.rgb.g, point.rgb.b);
+	glVertex3f(point.x, point.y, point.z);
+}
+
+//시계방향으로 넣어줘야함
+void drawRect(MyPoint p1, MyPoint p2, MyPoint p3, MyPoint p4)
+{
+	drawVertex(p1);
+	drawVertex(p2);
+	drawVertex(p4);
+	drawVertex(p3);
 }
 
 void RenderScene(void)
@@ -37,55 +43,40 @@ void RenderScene(void)
 	glPushMatrix();
 	glRotatef(xRot, 1.f, 0.f, 0.f);
 	glRotatef(yRot, 0.f, 1.f, 0.f);
-
-	if (iCull)
-		glEnable(GL_CULL_FACE);
-	else
-		glDisable(GL_CULL_FACE);
-	if (iDepth)
-		glEnable(GL_DEPTH_TEST);
-	else
-		glDisable(GL_DEPTH_TEST);
-	if (iOutline)
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	else
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	glBegin(GL_TRIANGLE_FAN);
+	glBegin(GL_QUAD_STRIP);
 	{
-		glVertex3f(0.f, 0.f, 75.f);//기준점
-		for (angle = 0.f; angle < (2.f * GL_PI); angle += (GL_PI / 8.f))
-		{
-			x = 50.f*sin(angle);
-			y = 50.f*cos(angle);
+		const MyColor red = { 1.f,0.f,0.f };
+		const MyColor green = { 0.f,1.f,0.f };
+		const MyColor blue = { 0.f,0.f,1.f };
+		const MyColor white = { 1.f,1.f,1.f };
+		const MyColor cheongRok = { 0.f,1.f,1.f };
+		const MyColor jahong = { 1.f,0.f,1.f };
+		const MyColor yellow = { 1.f,1.f,0.f };
+		const MyColor black = { 0.f,0.f,0.f };
 
-			if (iPivot % 2 == 0)
-				glColor3f(0.f, 1.f, 0.f);
-			else
-				glColor3f(1.f, 0.f, 0.f);
-			iPivot++;
-			glVertex2f(x, y);
-
-		}
-	}glEnd();
-	glBegin(GL_TRIANGLE_FAN);
-	{
-		glVertex2d(0.f, 0.f);
-		for (angle = 0.0f; angle < (2.0f*GL_PI); angle += (GL_PI / 8.0f))
-		{
-			x = 50.0f*sin(angle);
-			y = 50.0f*cos(angle);
-			if ((iPivot % 2) == 0) // add
-				glColor3f(0.0f, 1.0f, 0.0f);
-			else
-				glColor3f(1.0f, 0.0f, 0.0f);
-			iPivot++;
-			glVertex2f(x, y);
-		}
+		float size = 40.f;
+		float centerZ = 0.f;
+		MyPoint vertices[8] = {
+			{ -size,-size,+size,blue },// 앞면
+			{ -size,+size,+size,cheongRok },// 앞면
+			{ +size,+size,+size,white },// 앞면
+			{ +size,-size,+size,jahong },// 앞면
+			{ +size,-size,-size,red },// 뒷면
+			{ +size,+size,-size,yellow },// 뒷면
+			{ -size,+size,-size,green },// 뒷면
+			{ -size,-size,-size,black },// 뒷면
+		};
+		drawRect(vertices[0], vertices[1], vertices[2], vertices[3]);//앞
+		drawRect(vertices[7], vertices[6], vertices[1], vertices[0]);//왼
+		drawRect(vertices[2], vertices[5], vertices[4], vertices[3]);//오
+		drawRect(vertices[1], vertices[6], vertices[5], vertices[2]);//상
+		drawRect(vertices[7], vertices[0], vertices[3], vertices[4]);//하
+		drawRect(vertices[4], vertices[5], vertices[6], vertices[7]);//후
 	}glEnd();
 	
 	glPopMatrix();
-	glutSwapBuffers();
+	glutSwapBuffers();
+
 }
 void KeyControl(int key, int x, int y)
 {
@@ -104,8 +95,9 @@ void SetupRC(void)
 {
 	glClearColor(0.f,0.f, 0.f, 1.0f);
 	glColor3f(0.f, 1.f, 0.f);
-	glShadeModel(GL_FLAT);
+	glShadeModel(GL_SMOOTH);
 	glFrontFace(GL_CW);
+	glEnable(GL_DEPTH_TEST);
 }
 void ChangeSize(GLsizei w, GLsizei h)
 {
@@ -118,20 +110,15 @@ void ChangeSize(GLsizei w, GLsizei h)
 	else
 		glOrtho(-nRange*w / h, nRange*w / h, -nRange, nRange, -nRange, nRange);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	glLoadIdentity();
+
 }
 void main(void)
 {
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowPosition(200, 100);
 	glutInitWindowSize(512,512);
-	glutCreateWindow("Springs!");
-	
-	glutCreateMenu(ProcessMenu);
-	glutAddMenuEntry("깊이 테스트", 1);
-	glutAddMenuEntry("은면 제거", 2);
-	glutAddMenuEntry("뒷면 라인 그리기", 3);
-	glutAttachMenu(GLUT_RIGHT_BUTTON);
+	glutCreateWindow("Cube!");
 
 	glutSpecialFunc(KeyControl);
 	glutDisplayFunc(RenderScene);
