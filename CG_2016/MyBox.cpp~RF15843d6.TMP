@@ -1,0 +1,49 @@
+#include "MyBox.h"
+
+std::list<MyBox*> MyBox::_boxes;
+
+MyBox::MyBox(float posX, float posY, int size, float r, float g, float b, float xStep, float yStep)
+{
+	_posX = posX;
+	_posY = posY;
+	_size = size;
+	_r = r;
+	_g = g;
+	_b = b;
+	_xStep = xStep;
+	_yStep = yStep;
+	refresh();
+	_boxes.push_back(this);
+}
+
+MyBox::~MyBox()
+{
+	_boxes.remove(this);
+}
+
+void MyBox::checkBoundary()
+{
+	for (auto i : _boxes)
+	{
+		// ÀÚ±âÀÚ½Å Àß¶ó³¿
+		if(i == this)
+			continue;
+
+		// ¹þ¾î³­ ¾Öµé Àß¶ó³¿
+		if (i->_top < this->_bottom ||
+			i->_bottom > this->_top ||
+			i->_left > this->_right ||
+			i->_right < this->_left)
+			continue;
+		MyBox prebox;
+
+	}
+}
+
+void MyBox::refresh()
+{
+	_left = _posX;
+	_right = _left + _size;
+	_bottom = _posY;
+	_top = _bottom + _size;
+}

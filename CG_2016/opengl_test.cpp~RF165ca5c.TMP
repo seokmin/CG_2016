@@ -8,7 +8,7 @@
 float window_width = 100 * 800 / 600;
 float window_height = 100;
 
-std::list<MyBox*> &boxes = MyBox::_boxes;
+std::list<MyBox*> *pList;
 
 void RenderScene(void)
 {
@@ -28,14 +28,12 @@ void SetupRC(void)
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 
-	new MyBox(-50, -50, 20, 1, 0, 0, 1.5f, 1.f);
-	new MyBox(-50, +50, 30, 0, 1, 0, 1.f, -1.5f);
-	new MyBox(+50, +50, 40, 0, 0, 1, -1.5f, -1.f);
-	new MyBox(+50, -50, 50, 1, 1, 1, -1.f, 1.5f);
-	new MyBox(-window_width - window_height * 2, -window_height, 2 * window_height, 1, 1, 1, 0.f, 0.f);//аб
-	new MyBox(window_width, -window_height, window_height * 2, 1, 1, 1, 0.f, 0.f);//©Л
-	new MyBox(-window_width, window_height, 2 * window_width, 1, 1, 1, 0.f, 0.f);//╩С
-	new MyBox(-window_width, -window_height - 2*window_width, 2 * window_width, 1, 1, 1, 0.f, 0.f);//го
+	new MyBox(-50, -50, 50, 1, 0, 0, 1, 1);
+	new MyBox(-50, +50, 50, 0, 1, 0, 1, 1);
+	new MyBox(+50, +50, 50, 0, 0, 1, 1, 1);
+	new MyBox(+50, -50, 50, 1, 1, 1, 1, 1);
+	pList = &MyBox::_boxes;
+
 }
 
 void ChangeSize(int w, int h)
@@ -63,14 +61,7 @@ void ChangeSize(int w, int h)
 void TimerFunc(int value)
 {
 
-	for (auto i : boxes)
-	{
-		i->advance();
-	}
-	for (auto i : boxes)
-	{
-		i->checkBoundary();
-	}
+
 	glutPostRedisplay();
 	glutTimerFunc(17, TimerFunc, 1);
 }
