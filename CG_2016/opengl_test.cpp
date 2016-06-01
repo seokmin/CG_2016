@@ -3,6 +3,20 @@
 #include <math.h>
 #include "lodepng.h"
 
+int window_width;
+int window_height;
+int width_devide;
+int height_devide;
+void Mouse(int iButton, int iState, int x, int y);
+struct MyCircle
+{
+	GLfloat x;
+	GLfloat y;
+	GLfloat r;
+};
+
+std::vector<MyCircle> g_circles;
+
 const GLfloat GL_PI = 3.1415;
 GLuint texIDs[3];
 
@@ -50,8 +64,6 @@ void SetupRC(void)
 	gluQuadricDrawStyle(sphere, GLU_FILL);
 	gluQuadricTexture(sphere, GL_TRUE);
 	gluQuadricNormals(sphere, GLU_SMOOTH);
-// 	glClearColor(0.f, 0.f, 0.f, 1.0f);
-// 	glColor3f(0.f, 1.f, 0.f);
 
 	glGenTextures(3, texIDs);
 
@@ -84,23 +96,46 @@ void ChangeSize(GLsizei w, GLsizei h)
 	glLoadIdentity();
 
 	glTranslatef(0.f, 0.f, -200.f);
+	window_width = w;
+	window_height = h;
 
+	if (w <= h)
+	{
+		width_devide = 100.f;
+		height_devide = 100.f * h / w;
+	}
+	else
+	{
+		width_devide = 100.f * w / h;
+		height_devide = 100.f;
+	}
 }
 
 void RenderScene(void)
+
 {
 	static GLfloat fElect1 = 0.f;
 	static GLfloat fElect2 = 0.f;
 	static GLfloat earthPingPing = 0.f;
 	static GLfloat moonPingPing = 0.f;
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	for (auto i : g_circles)
+	{
+		glLoadIdentity();
+		glPushMatrix();
+		glTranslatef(i.x*2, i.y*2, -300.f);
+		glBindTexture(GL_TEXTURE_2D, texIDs[0]);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+		gluSphere(sphere, i.r, i.r*3, i.r*3);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glPopMatrix();
+	}
 	//еб╬Г
-	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glTranslatef(0.f, 0.f, -100.f);
 	glBindTexture(GL_TEXTURE_2D, texIDs[0]);
-	glColor3ub(255, 0, 0);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	glPushMatrix();
 	glRotatef(fElect1, 0.f, 1.f, 0.f);
@@ -113,7 +148,6 @@ void RenderScene(void)
 
 	glTranslatef(50.f, 0.f, 0.f);
 	glBindTexture(GL_TEXTURE_2D, texIDs[1]);
-	glColor3ub(255, 255, 0);
 	glPushMatrix();
 	glRotatef(-earthPingPing, 0.f, 1.f, 0.f);
 	gluSphere(sphere, 6.f, 30, 30);
@@ -123,12 +157,11 @@ void RenderScene(void)
 	glRotatef(fElect2, 0.f, 1.f, 0.f);
 	glTranslatef(-20.f, 0.f, 0.f);
 	glBindTexture(GL_TEXTURE_2D, texIDs[2]);
-	glColor3ub(0, 255, 0);
 	glPushMatrix();
 	glRotatef(moonPingPing, 0.f, 1.f, 0.f);
 	gluSphere(sphere, 3.f, 15, 15);
 	glPopMatrix();
-	glPopMatrix();
+	glPopMatrix(); glPopMatrix();
 
 	fElect1 += 0.5f;
 	if (fElect1 > 360.f)
@@ -156,6 +189,7 @@ void main(void)
 	glutTimerFunc(1000/60, TimerFunc, 1);
 	glutDisplayFunc(RenderScene);
 	glutReshapeFunc(ChangeSize);
+	glutMouseFunc(Mouse);
 	SetupRC();
 
 	LoadTexture("sun.png");
@@ -163,4 +197,26 @@ void main(void)
 	LoadTexture("moon.png");
 	
 	glutMainLoop();
+}
+
+void Mouse(int iButton, int iState, int x, int y)
+{
+	if (iState == GLUT_DOWN)
+	{
+		switch (iButton)
+		{
+		case GLUT_LEFT_BUTTON:
+			static auto size = 5.f;
+			x -= window_width/2;
+			y -= window_height/2;
+			y *= -1;
+
+			x *= (float)width_devide / ((float)window_width / 2.f);
+			y *= (float)height_devide / ((float)window_height / 2.f);
+
+			g_circles.emplace_back(MyCircle{(float)x,(float)y,size});
+			size += 1.f;
+			break;
+		}
+	}
 }
